@@ -1,4 +1,4 @@
-<h1 align="center">sysuu <sub>v0.1.0</sub></h1>
+<h1 align="center">sysuu <sub>v0.2.0</sub></h1>
 
 <p align="center">System update and upgrade automation</p>
 
@@ -14,11 +14,9 @@
 
 <h2 id="about">About</h2>
 
-A script that automates routine system maintenance tasks, specifically
+A utility script that automates routine system maintenance tasks, specifically `apt update` and `apt upgrade`. 
 
-`apt update` and `apt upgrade`.
-
-It runs automatically in the background using CRON.
+Instead of legacy cron jobs, it utilizes a native **Systemd Service and Timer architecture** to safely execute updates in the background.
 
 ```text
 sysuu meaning
@@ -36,7 +34,7 @@ As a student currently participating in a DevOps course focused heavily on autom
 <h2 id="requirements">Requirements</h2>
 
 * Operating system based on Debian/Ubuntu (uses `apt`).
-* `cron` or `anacron` service installed and running.
+* systemd initialized as the system manager.
 * Root/sudo privileges (required for system updates).
 
 <h2 id="installation">Installation</h2>
@@ -45,36 +43,38 @@ As a student currently participating in a DevOps course focused heavily on autom
 First, clone this repository to your local machine (preferably into your home directory) and navigate into the project folder:
 ```bash
 git clone https://github.com/Seysane/sysuu.git
-cd ~/sysuu
+cd ~/sysuu/scripts
 ```
 
-### 2. Permissions
+### 2. Run the Installer
 
-Make the script executable before scheduling it:
+The project includes a fully automated `install.sh` script. It handles permissions, moves the executable into the global binary path, configures the Systemd units, and starts the automation timer.
+
+Make the script executable:
 
 ```bash
-chmod +x scripts/sysuu.sh
+chmod +x install.sh
 ```
 
-### 3. Schedule with Cron
-
-Since `apt` requires superuser privileges, the script must be added to the root crontab.
-
-Open the root crontab:
+Run the install.sh with sudo:
 
 ```bash
-sudo crontab -e
+sudo ./install.sh
 ```
 
-Add the following line at the very bottom (remember to adjust the path to your system's username):
+### 3. Verify the Automation
 
-```text
-0 */6 * * * /home/your-user-name/sysuu/scripts/sysuu.sh
+You can verify that your background timer is loaded and actively waiting for its next scheduled run by checking its system status:
+
+```bash
+sudo systemctl status sysuu.timer
 ```
 
->Tip: This configuration runs the script every 6 hours. 
->
->If you want to change the interval (e.g., to run daily or weekly), you can easily generate a new cron schedule using `crontab.guru`.
+To see a complete list of active timers and execution schedules on your machine:
+
+```bash
+systemctl list-timers
+```
 
 ### 4. Logs Location
 
@@ -94,13 +94,15 @@ HH - Hour of execution
 
 <h2 id="future-improvements">Future Improvements</h2>
 
-This project is a work in progress. Here are the specific features and system maintenance tasks I plan to implement next:
+This project is continuously evolving as I progress through system administration concepts:
 
-- [ ] Automated Cleanups: Add `apt autoremove` and `apt clean` to automatically purge obsolete packages and free up disk space.
+[X] Replace cron with systemd services.
 
-- [ ] Log Retention Policy: Implement a retention mechanism (e.g., a configurable 7-day limit) to automatically delete historical log files older than a specific number of days.
+[x] Automated Installation Script: Create an install.sh script to deploy files and configure background tasks automatically.
 
-- [ ] Automated Installation Script: Create an `install.sh` script to automate the setup process (checking dependencies, granting execute permissions, and automatically scheduling the root Cron job without manual crontab editing).
+[ ] Automated Cleanups: Integrate apt autoremove and apt clean to automatically purge obsolete packages and reclaim disk space.
+
+[ ] Log Retention Policy: Implement a bash-driven retention mechanism (e.g., a 7-day limit) to automatically prune historical log files.
 
 And more... Additional automation tweaks and optimizations are currently under consideration.
 
@@ -111,5 +113,5 @@ And more... Additional automation tweaks and optimizations are currently under c
 sysuu/             - Main directory
 ├── README.md      - Readme file
 └── scripts/       - Script directory
-    └── sysuu.sh   - Script
+    └── install.sh - Automated system installation script
 ```
